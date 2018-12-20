@@ -1,0 +1,150 @@
+#!/bin/bash
+
+export PROJECT_NAME=${PROJECT_NAME:='gluu'}
+export PROJECT_GROUP=${PROJECT_GROUP:='svc'}
+
+AKX_COMMAND=$1
+
+akx_command() {
+	case "$AKX_COMMAND" in
+		'validate')
+			validate_environment docker true
+			validate_environment kube
+			;;
+		'docker')
+			docker_commands "$@"
+			;;
+		'kube')
+			kube_commands "$@"
+			;;
+		'tag')
+			update_version "$@"
+			;;
+		*)
+			echo "Command not found"
+			;;
+	esac
+}
+
+update_version() {
+	git tag $1
+}
+
+docker_commands() {
+	validate_environment docker true
+	set_docker_namespace
+	case "$1" in
+		'login')
+			docker login -u ${DOCKER_USER} -p ${DOCKER_PASSWORD} ${DOCKER_REGISTRY}
+			;;
+		'build')
+    		docker-compose build
+			;;
+		'config')
+			docker-compose config
+			;;
+		'push')	
+			docker-compose push
+		    docker tag ${DOCKER_NAMESPACE}:${PROJECT_VERSION} ${DOCKER_NAMESPACE}:latest
+		    docker push ${DOCKER_NAMESPACE}:latest
+			;;
+		'run')
+			docker-compose up -d
+			;;
+	esac
+}
+
+kube_commands() {
+	
+	# make sure we have required tools
+	validate_environment docker true
+	validate_environment kube true
+	
+	#get any useable env vars as args
+	local helm_sets=''
+	local helm_args=(
+		NAMESPACE
+		PROJECT_GROUP
+		DOCKER_REGISTRY
+		DOCKER_USER
+		DOCKER_PASSWORD
+		ROOT_PASS
+		STORAGE_CLASS
+		STORAGE_SIZE
+		INCLUDE_NODEPORT
+		NODEPORT
+		REPLICAS
+	);
+
+	for arg in "${helm_args[@]}"
+	do
+		if [ ! -z "${!arg}" ]; then
+			helm_sets="$helm_sets --set $(echo $arg | tr '[:upper:]' '[:lower:]')=${!arg}"
+		fi
+	done
+	
+	echo $helm_sets
+	
+	#run a helm command for the kube
+	case "$1" in
+		'config')
+			helm install . --dry-run --debug $helm_sets -f ./env/dev-server.yaml
+			;;
+		'run')
+			helm install . $helm_sets -f ./env/dev-server.yaml
+			;;
+		*)
+			echo "Command not found"
+			;;
+	esac
+}
+
+set_docker_namespace() {
+	export PROJECT_VERSION=${PROJECT_VERSION:=$(git describe --abbrev=0 --tags)}
+	if [ -z "${DOCKER_REGISTRY+x}" ]; then
+		export DOCKER_NAMESPACE="${PROJECT_GROUP}/${PROJECT_NAME}"
+	else
+		export DOCKER_NAMESPACE="${DOCKER_REGISTRY}/${PROJECT_GROUP}/${PROJECT_NAME}"
+	fi
+}
+
+validate_environment() {
+	
+	case "$1" in
+		'docker')
+			validate_command docker --version $2
+			validate_command docker-compose --version $2
+			;;
+		'kube')
+			validate_command kubectl version $2
+			validate_command helm version $2
+			;;
+	esac
+	
+}
+
+validate_command() {
+	if [ $(command -v $1) ]; then
+		echo "--- $1 ---"
+		echo -e "$($1 $2)\n"
+	else
+		if [ $3 ]; then
+			echo "The $1 command is not available but it is required. Please install before continuing" >&2
+			exit 1
+		else
+			echo "The $1 command is not available but that is ok"
+		fi
+	fi
+}
+
+validate_variable() {
+	
+	if [ -z ${1+x} ]; then
+		echo "$1 is ${!1}"
+	else
+		echo "$1 does not exist"
+	fi
+}
+
+shift
+akx_command "$@"
