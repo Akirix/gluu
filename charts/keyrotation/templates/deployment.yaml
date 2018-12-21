@@ -1,16 +1,20 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  name: {{ template "gluu.fullname" . }}
   labels:
-    app: gluukeyrotation
-    env: dev
-  name: gluukeyrotation
+    app: {{ template "gluu.name" . }}
+    chart: {{ template "gluu.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: gluukeyrotation
-      env: dev
+      app: {{ template "gluu.name" . }}
+      chart: {{ template "gluu.chart" . }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -19,12 +23,31 @@ spec:
   template:
     metadata:
       creationTimestamp: null
+      annotations:
+      {{- if .Values.podAnnotations }}
+{{ toYaml .Values.podAnnotations | indent 8 }}
+      {{- end }}
       labels:
-        app: gluukeyrotation
-        env: dev
+        app: {{ template "gluu.name" . }}
+        chart: {{ template "gluu.chart" . }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
     spec:
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+        {{- end}}
+      {{- end}}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
       containers:
-      - env:
+      - name: {{ template "gluu.fullname" . }}
+        image: "{{ template "gluu.image" . }}"
+        imagePullPolicy: {{ default "" .Values.image.pullPolicy | quote }}
+        env:
         - name: GLUU_KV_HOST
           value: gluuconsul
         - name: GLUU_KV_PORT
@@ -33,6 +56,3 @@ spec:
           value: openldap-svc:1389
         - name: GLUU_KEY_ROTATION_INTERVAL
           value: "2"
-        image: gluufederation/key-rotation:3.1.1_dev
-        imagePullPolicy: IfNotPresent
-        name: gluukeyrotation

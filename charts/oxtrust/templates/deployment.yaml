@@ -1,16 +1,20 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
+  name: {{ template "gluu.fullname" . }}
   labels:
-    app: gluuoxtrust
-    env: dev
-  name: gluuoxtrust
+    app: {{ template "gluu.name" . }}
+    chart: {{ template "gluu.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: gluuoxtrust
-      env: dev
+      app: {{ template "gluu.name" . }}
+      chart: {{ template "gluu.chart" . }}
+      release: {{ .Release.Name }}
+      heritage: {{ .Release.Service }}
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -18,21 +22,37 @@ spec:
     type: RollingUpdate
   template:
     metadata:
+      annotations:
+      {{- if .Values.podAnnotations }}
+{{ toYaml .Values.podAnnotations | indent 8 }}
+      {{- end }}
       labels:
-        app: gluuoxtrust
-        env: dev
+        app: {{ template "gluu.name" . }}
+        chart: {{ template "gluu.chart" . }}
+        release: {{ .Release.Name }}
+        heritage: {{ .Release.Service }}
     spec:
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+        {{- end}}
+      {{- end}}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
       containers:
-      - env:
+      - name: {{ template "gluu.fullname" . }}
+        image: "{{ template "gluu.image" . }}"
+        imagePullPolicy: {{ default "" .Values.image.pullPolicy | quote }}
+        env:
         - name: GLUU_KV_HOST
           value: gluuconsul
         - name: GLUU_KV_PORT
           value: "8500"
         - name: GLUU_LDAP_URL
           value: openldap-svc:1389
-        image: gluufederation/oxtrust:3.1.1_dev
-        imagePullPolicy: IfNotPresent
-        name: gluuoxtrust
         ports:
         - containerPort: 8080
           protocol: TCP
