@@ -1,0 +1,38 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    app: gluukeyrotation
+    env: dev
+  name: gluukeyrotation
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: gluukeyrotation
+      env: dev
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      labels:
+        app: gluukeyrotation
+        env: dev
+    spec:
+      containers:
+      - env:
+        - name: GLUU_KV_HOST
+          value: gluuconsul
+        - name: GLUU_KV_PORT
+          value: "8500"
+        - name: GLUU_LDAP_URL
+          value: openldap-svc:1389
+        - name: GLUU_KEY_ROTATION_INTERVAL
+          value: "2"
+        image: gluufederation/key-rotation:3.1.1_dev
+        imagePullPolicy: IfNotPresent
+        name: gluukeyrotation
