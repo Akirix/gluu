@@ -64,3 +64,36 @@ Creates a csv list of the ldap servers
 {{- end -}}
 
 
+{{/*
+Creates consul env vars
+*/}}
+{{- define "gluu.commonvars" -}}
+- name: GLUU_KUBERNETES_NAMESPACE
+  value: {{ .Values.global.namespace }}
+- name: GLUU_KUBERNETES_CONFIGMAP
+  value: {{ .Values.global.configMapName }}
+- name: GLUU_CONFIG_ADAPTER
+  value: {{ .Values.global.configAdapter }}
+{{- if eq .Values.global.configAdapter "consul" }}
+{{- with .Values.global.consul }}
+- name: GLUU_CONSUL_HOST # or GLUU_KV_HOST 
+  value: {{ .host }}
+- name: GLUU_CONSUL_PORT # or GLUU_KV_PORT 
+  value: {{ .port | quote }}
+- name: GLUU_CONSUL_CONSISTENCY
+  value: {{ .consistency }}
+- name: GLUU_CONSUL_SCHEME
+  value: {{ .scheme }}
+- name: GLUU_CONSUL_VERIFY
+  value: {{ .verify }}
+- name: GLUU_CONSUL_CACERT_FILE
+  value: '/etc/certs/consul_ca.crt'
+- name: GLUU_CONSUL_CERT_FILE
+  value: '/etc/certs/consul_client.crt'
+- name: GLUU_CONSUL_KEY_FILE
+  value: '/etc/certs/consul_client.key'
+- name: GLUU_CONSUL_TOKEN_FILE
+  value: '/etc/certs/consul_token'
+{{- end }}
+{{- end }}
+{{- end -}}

@@ -4,18 +4,12 @@ metadata:
   name: {{ template "gluu.fullname" . }}
   namespace: {{ .Values.global.namespace }}
   labels:
-    app: {{ template "gluu.name" . }}
-    chart: {{ template "gluu.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+{{ include "gluu.labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: {{ template "gluu.name" . }}
-      chart: {{ template "gluu.chart" . }}
-      release: {{ .Release.Name }}
-      heritage: {{ .Release.Service }}
+{{ include "gluu.labels" . | indent 6 }}
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -29,10 +23,7 @@ spec:
 {{ toYaml .Values.podAnnotations | indent 8 }}
       {{- end }}
       labels:
-        app: {{ template "gluu.name" . }}
-        chart: {{ template "gluu.chart" . }}
-        release: {{ .Release.Name }}
-        heritage: {{ .Release.Service }}
+{{ include "gluu.labels" . | indent 8 }}
         {{- if .Values.podLabels }}
 {{ toYaml .Values.podLabels | indent 8 }}
         {{- end }}
@@ -67,36 +58,13 @@ spec:
 {{ toYaml .Values.resources | indent 10 }}
           {{- end }}  
           env:
-            - name: GLUU_KUBERNETES_NAMESPACE
-              value: {{ .Values.global.namespace }}
             - name: GLUU_KEY_ROTATION_INTERVAL
               value: {{ .Values.interval | quote }}
             - name: GLUU_KEY_ROTATION_CHECK
               value: {{ .Values.check | quote }}
-            - name: GLUU_KUBERNETES_CONFIGMAP
-              value: {{ .Values.global.configMapName }}
-            {{- if eq .Values.global.configAdapter "consul" }}
-            - name: GLUU_CONSUL_HOST # or GLUU_KV_HOST 
-              value: {{ .Values.global.consul.host }}
-            - name: GLUU_CONSUL_PORT # or GLUU_KV_PORT 
-              value: {{ .Values.global.consul.port | quote }}
-            - name: GLUU_CONSUL_CONSISTENCY
-              value: {{ .Values.global.consul.consistency }}
-            - name: GLUU_CONSUL_SCHEME
-              value: {{ .Values.global.consul.scheme }}
-            - name: GLUU_CONSUL_VERIFY
-              value: {{ .Values.global.consul.verify }}
-            - name: GLUU_CONSUL_CACERT_FILE
-              value: '/etc/certs/consul_ca.crt'
-            - name: GLUU_CONSUL_CERT_FILE
-              value: '/etc/certs/consul_client.crt'
-            - name: GLUU_CONSUL_KEY_FILE
-              value: '/etc/certs/consul_client.key'
-            - name: GLUU_CONSUL_TOKEN_FILE
-              value: '/etc/certs/consul_token'
-            {{- end }}
             - name: GLUU_LDAP_URL
               value: "{{ template "gluu.ldaplist" .Values.global.ldap }}"
+{{ include "gluu.commonvars" . | indent 12 }}
           volumeMounts:
             {{- if .Values.global.consul.tlsSecretName }}
             - name: consul-tls
