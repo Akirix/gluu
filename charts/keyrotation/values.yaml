@@ -4,6 +4,9 @@ interval: 2
 # how often to check on rotations
 check: 3600
 
+# how many replications are needed
+replicas: 1
+
 ## keyrotation image version
 ## ref: https://hub.docker.com/r/bitnami/redis/tags/
 ##
@@ -24,8 +27,6 @@ image:
   ##
   # pullSecrets:
   #   - myRegistrKeySecretName
-  
-replicas: 1
 
 ## Tweak the available pod resources  
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
@@ -64,6 +65,3 @@ replicas: 1
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
 # podLabels: {}
-
-
-

@@ -2,19 +2,14 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: {{ template "gluu.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
   labels:
-    app: {{ template "gluu.name" . }}
-    chart: {{ template "gluu.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+{{ include "gluu.labels" . | indent 4 }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: {{ template "gluu.name" . }}
-      chart: {{ template "gluu.chart" . }}
-      release: {{ .Release.Name }}
-      heritage: {{ .Release.Service }}
+{{ include "gluu.labels" . | indent 6 }}
   strategy:
     rollingUpdate:
       maxSurge: 1
@@ -22,15 +17,15 @@ spec:
     type: RollingUpdate
   template:
     metadata:
-      annotations:
       {{- if .Values.podAnnotations }}
+      annotations:
 {{ toYaml .Values.podAnnotations | indent 8 }}
       {{- end }}
       labels:
-        app: {{ template "gluu.name" . }}
-        chart: {{ template "gluu.chart" . }}
-        release: {{ .Release.Name }}
-        heritage: {{ .Release.Service }}
+{{ include "gluu.labels" . | indent 8 }}
+        {{- if .Values.podLabels }}
+{{ toYaml .Values.podLabels | indent 8 }}
+        {{- end }}
     spec:
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
@@ -42,17 +37,38 @@ spec:
       nodeSelector:
 {{ toYaml .Values.nodeSelector | indent 8 }}
       {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      {{- end }}
+      {{- if .Values.schedulerName }}
+      schedulerName: "{{ .Values.schedulerName }}"
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: 
+{{ toYaml .Values.affinity | indent 8 }}
+      {{- end }}
       containers:
-      - name: {{ template "gluu.fullname" . }}
-        image: "{{ template "gluu.image" . }}"
-        imagePullPolicy: {{ default "" .Values.image.pullPolicy | quote }}
-        env:
-        - name: GLUU_KV_HOST
-          value: gluuconsul
-        - name: GLUU_KV_PORT
-          value: "8500"
-        - name: GLUU_LDAP_URL
-          value: openldap-svc:1389
-        ports:
-        - containerPort: 8080
-          protocol: TCP
+        - name: {{ template "gluu.fullname" . }}
+          image: "{{ template "gluu.image" . }}"
+          imagePullPolicy: {{ default "" .Values.image.pullPolicy | quote }}
+          {{- if .Values.resources }}
+          resources:
+{{ toYaml .Values.resources | indent 10 }}
+          {{- end }}
+          env:
+            {{- if .Values.maxRamFraction }}
+            - name: GLUU_MAX_RAM_FRACTION
+              value: {{ .Values.maxRamFraction }}
+            {{- end }}
+            {{- if .Values.debugPort }}
+            - name: GLUU_DEBUG_PORT
+              value: {{ .Values.debugPort }}
+            {{- end }}
+            - name: GLUU_LDAP_URL
+              value: "{{ template "gluu.ldaplist" .Values.global.ldap }}"
+{{ include "gluu.commonvars" . | indent 12 }}
+          ports:
+            - containerPort: 8080
+              protocol: TCP
+              name: http

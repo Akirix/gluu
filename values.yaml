@@ -24,3 +24,7 @@ global:
 keyrotation:
   interval: 2
   check: 3600
+  
+# oxauth:
+  # maxRamFraction: 
+  # debugPort: 

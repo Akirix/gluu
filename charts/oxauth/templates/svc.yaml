@@ -6,12 +6,9 @@ metadata:
 {{ toYaml .Values.service.annotations | indent 4 }}
 {{- end }}
   name: {{ template "gluu.fullname" . }}
-  namespace: "{{ .Values.namespace }}"
+  namespace: {{ .Values.global.namespace }}
   labels:
-    app: {{ template "gluu.name" . }}
-    chart: {{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+{{ include "gluu.labels" . | indent 4 }}
 spec:
   type: {{ .Values.service.type }}
 {{- if (and (eq .Values.service.type "ClusterIP") (not (empty .Values.service.clusterIP))) }}
@@ -37,5 +34,4 @@ spec:
     nodePort: {{ .Values.service.nodePort }}
 {{- end }}
   selector:
-    app: {{ template "gluu.name" . }}
-    release: {{ .Release.Name }}
+{{ include "gluu.labels" . | indent 4 }}
