@@ -1,16 +1,37 @@
 apiVersion: v1
 kind: Service
 metadata:
+{{- if .Values.service.annotations }}
+  annotations:
+{{ toYaml .Values.service.annotations | indent 4 }}
+{{- end }}
+  name: {{ template "gluu.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
   labels:
-    app: gluuoxtrust
-    env: dev
-  name: gluuoxtrust
+{{ include "gluu.labels" . | indent 4 }}
 spec:
+  type: {{ .Values.service.type }}
+{{- if (and (eq .Values.service.type "ClusterIP") (not (empty .Values.service.clusterIP))) }}
+  clusterIP: "{{ .Values.service.clusterIP }}"
+{{- end }}
+{{- if .Values.service.externalIPs }}
+  externalIPs:
+{{ toYaml .Values.service.externalIPs | indent 4 }}
+{{- end }}
+{{- if .Values.service.loadBalancerIP }}
+  loadBalancerIP: "{{ .Values.service.loadBalancerIP }}"
+{{- end }}
+{{- if .Values.service.loadBalancerSourceRanges }}
+  loadBalancerSourceRanges:
+{{ toYaml .Values.service.loadBalancerSourceRanges | indent 4 }}
+{{- end }}
   ports:
-  - port: 8080
+  - port: {{ .Values.service.port }}
+    targetPort: http
     protocol: TCP
-    targetPort: 8080
+    name: gluuport
+{{- if (and (eq .Values.service.type "NodePort") (not (empty .Values.service.nodePort))) }}
+    nodePort: {{ .Values.service.nodePort }}
+{{- end }}
   selector:
-    app: gluuoxtrust
-    env: dev
-  type: ClusterIP
+{{ include "gluu.labels" . | indent 4 }}
