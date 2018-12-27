@@ -26,17 +26,17 @@ Create chart name and version as used by the chart label.
 Creates the basic labels which everything has.
 */}}
 {{- define "gluu.labels" -}}
-	app: {{ template "gluu.name" . }}
-	chart: {{ template "gluu.chart" . }}
-	release: {{ .Release.Name }}
-	heritage: {{ .Release.Service }}
+app: {{ template "gluu.name" . }}
+chart: {{ template "gluu.chart" . }}
+release: {{ .Release.Name }}
+heritage: {{ .Release.Service }}
 {{- end -}}
 
 {{/*
-Return the proper Redis image name
+Return the proper image name
 */}}
 {{- define "gluu.image" -}}
-{{- $registryName := .Values.image.registry -}}
+{{- $registryName := (default .Values.image.registry "docker.io") -}}
 {{- $repositoryName := .Values.image.repository -}}
 {{- $tag := .Values.image.tag | toString -}}
 {{/*
@@ -54,3 +54,13 @@ Also, we can't use a single if because lazy evaluation is not an option
     {{- printf "%s/%s:%s" $registryName $repositoryName $tag -}}
 {{- end -}}
 {{- end -}}
+
+{{/*
+Creates a csv list of the ldap servers
+*/}}
+{{- define "gluu.ldaplist" -}}
+{{- $local := dict "first" true -}}
+{{- range $k, $v := . -}}{{- if not $local.first -}},{{- end -}}{{- printf "%s:%.f" $v.host $v.port -}}{{- $_ := set $local "first" false -}}{{- end -}}
+{{- end -}}
+
+

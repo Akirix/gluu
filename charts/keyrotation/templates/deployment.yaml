@@ -2,6 +2,7 @@ apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
   name: {{ template "gluu.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
   labels:
     app: {{ template "gluu.name" . }}
     chart: {{ template "gluu.chart" . }}
@@ -23,8 +24,8 @@ spec:
   template:
     metadata:
       creationTimestamp: null
-      annotations:
       {{- if .Values.podAnnotations }}
+      annotations:
 {{ toYaml .Values.podAnnotations | indent 8 }}
       {{- end }}
       labels:
@@ -32,6 +33,9 @@ spec:
         chart: {{ template "gluu.chart" . }}
         release: {{ .Release.Name }}
         heritage: {{ .Release.Service }}
+        {{- if .Values.podLabels }}
+{{ toYaml .Values.podLabels | indent 8 }}
+        {{- end }}
     spec:
       {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
@@ -43,16 +47,64 @@ spec:
       nodeSelector:
 {{ toYaml .Values.nodeSelector | indent 8 }}
       {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      {{- end }}
+      {{- if .Values.schedulerName }}
+      schedulerName: "{{ .Values.schedulerName }}"
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: 
+{{ toYaml .Values.affinity | indent 8 }}
+      {{- end }}
       containers:
-      - name: {{ template "gluu.fullname" . }}
-        image: "{{ template "gluu.image" . }}"
-        imagePullPolicy: {{ default "" .Values.image.pullPolicy | quote }}
-        env:
-        - name: GLUU_KV_HOST
-          value: gluuconsul
-        - name: GLUU_KV_PORT
-          value: "8500"
-        - name: GLUU_LDAP_URL
-          value: openldap-svc:1389
-        - name: GLUU_KEY_ROTATION_INTERVAL
-          value: "2"
+        - name: {{ template "gluu.fullname" . }}
+          image: "{{ template "gluu.image" . }}"
+          imagePullPolicy: {{ default "" .Values.image.pullPolicy | quote }}
+          {{- if .Values.resources }}
+          resources:
+{{ toYaml .Values.resources | indent 10 }}
+          {{- end }}  
+          env:
+            - name: GLUU_KUBERNETES_NAMESPACE
+              value: {{ .Values.global.namespace }}
+            - name: GLUU_KEY_ROTATION_INTERVAL
+              value: {{ .Values.interval | quote }}
+            - name: GLUU_KEY_ROTATION_CHECK
+              value: {{ .Values.check | quote }}
+            - name: GLUU_KUBERNETES_CONFIGMAP
+              value: {{ .Values.global.configMapName }}
+            {{- if eq .Values.global.configAdapter "consul" }}
+            - name: GLUU_CONSUL_HOST # or GLUU_KV_HOST 
+              value: {{ .Values.global.consul.host }}
+            - name: GLUU_CONSUL_PORT # or GLUU_KV_PORT 
+              value: {{ .Values.global.consul.port | quote }}
+            - name: GLUU_CONSUL_CONSISTENCY
+              value: {{ .Values.global.consul.consistency }}
+            - name: GLUU_CONSUL_SCHEME
+              value: {{ .Values.global.consul.scheme }}
+            - name: GLUU_CONSUL_VERIFY
+              value: {{ .Values.global.consul.verify }}
+            - name: GLUU_CONSUL_CACERT_FILE
+              value: '/etc/certs/consul_ca.crt'
+            - name: GLUU_CONSUL_CERT_FILE
+              value: '/etc/certs/consul_client.crt'
+            - name: GLUU_CONSUL_KEY_FILE
+              value: '/etc/certs/consul_client.key'
+            - name: GLUU_CONSUL_TOKEN_FILE
+              value: '/etc/certs/consul_token'
+            {{- end }}
+            - name: GLUU_LDAP_URL
+              value: "{{ template "gluu.ldaplist" .Values.global.ldap }}"
+          volumeMounts:
+            {{- if .Values.global.consul.tlsSecretName }}
+            - name: consul-tls
+              mountPath: /etc/certs
+            {{- end }}
+      volumes:
+          {{- if .Values.global.consul.tlsSecretName }}
+          - name: consul-tls
+            secret: 
+              secretName: {{ .Values.global.consul.tlsSecretName }}
+          {{- end }}

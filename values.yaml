@@ -1,20 +1,26 @@
+global:
+  imageRegistry: docker.io
+  namespace: default
 
-
-
+  # Options: consul or kubernetes
+  configAdapter: consul
+  
+  # the name of some kind of configmap
+  configMapName: gluu
+  
+  consul:
+    host: consul
+    port: 8500
+    scheme: http # options: http or https
+    verify: false # options: true or false
+    consistency: stale # options: default, stale, consistent
+    # tlsSecretName: consul-tls-secret
     
-
-
-## Node labels for pod assignment
-## Ref: https://kubernetes.io/docs/user-guide/node-selection/
-##
-nodeSelector: {}
-
-podAnnotations: {}
-
-resources: {}
-  # limits:
-  #  cpu: 100m
-  #  memory: 512Mi
-  # requests:
-  #  cpu: 100m
-  #  memory: 512Mi
+  ## An array of available ldap hosts to use
+  ldap:
+    - host: ldap
+      port: 1389
+  
+keyrotation:
+  interval: 2
+  check: 3600
