@@ -27,14 +27,23 @@ image:
   ##
   # pullSecrets:
   #   - myRegistrKeySecretName
+  
+## Optional host aliases
+## ref: https://kubernetes.io/docs/concepts/services-networking/add-entries-to-pod-etc-hosts-with-host-aliases/
+#hostAliases:
+#  - ip: '127.0.0.1'
+#    hostnames:
+#      - 'localhost'
+#      - 'local'
 
 ## Tweak the available pod resources  
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
-##
-# resources:
-#   requests:
-#     memory: 256Mi
-#     cpu: 100m
+##    
+resources:
+  requests:
+    memory: "1000Mi"
+  limits:
+    memory: "1536Mi"
 
 ## Node labels for pod assignment
 ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
