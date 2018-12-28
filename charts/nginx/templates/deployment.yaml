@@ -57,24 +57,11 @@ spec:
 {{ toYaml .Values.resources | indent 10 }}
           {{- end }}
           env:
-            - name: GLUU_OXAUTH_BACKEND
-              value: {{ printf "%s-oxauth:%s" .Release.Name "8080" }}
-            - name: GLUU_SHIB_SOURCE_DIR
-              value: '/opt/shibboleth-idp'
-            - name: GLUU_SHIB_TARGET_DIR
-              value: '/opt/shared-shibboleth-idp'
-            {{- if .Values.maxRamFraction }}
-            - name: GLUU_MAX_RAM_FRACTION
-              value: {{ .Values.maxRamFraction }}
-            {{- end }}
-            {{- if .Values.debugPort }}
-            - name: GLUU_DEBUG_PORT
-              value: {{ .Values.debugPort }}
-            {{- end }}
-            - name: GLUU_LDAP_URL
-              value: "{{ template "gluu.ldaplist" .Values.global.ldap }}"
 {{ include "gluu.commonvars" . | indent 12 }}
           ports:
-            - containerPort: 8080
+            - containerPort: 443
+              protocol: TCP
+              name: https
+            - containerPort: 80
               protocol: TCP
               name: http
