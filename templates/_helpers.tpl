@@ -112,33 +112,58 @@ Get the correct storage class for something with a storage class field
 {{- end -}}
 
 {{/*
-Create a PVC template for stateful sets
+Creates a PV
 */}}
-{{- define "gluu.pvc-spec" -}}
-- metadata:
-    name: {{ template "gluu.fullname" . }}-{{ .name }}
-    labels:
+{{- define "gluu.pv" -}}
+{{- if and (and .enabled .provisioner.enabled) (not .existingClaim) }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .fullName }}
+  namespace: "{{ .namespace }}"
+  labels:
+    volume: {{ .name }}
+{{ .labels | indent 4 }}
+spec:
+  capacity:
+    storage: {{ .size | quote }}
+  volumeMode: Filesystem
+  storageClassName: {{ template "gluu.storageClass" . }}
+  accessModes:
+  {{- range .accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  persistentVolumeReclaimPolicy: Recycle
+  {{ .provisioner.type }}:
+{{ toYaml .provisioner.spec | indent 4 }}
+{{- end }}
+{{- end -}}
+
+{{/*
+Creates a PVC Template for a stateful set
+*/}}
+{{- define "gluu.pvc" -}}
+kind: PersistentVolumeClaim
+apiVersion: v1
+metadata:
+  name: {{ .fullName }}
+  namespace: "{{ .namespace }}"
+  labels:
+    volume: {{ .name }}
+{{ .labels | indent 4 }}
+spec:
+  accessModes:
+  {{- range .accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .size | quote }}
+  storageClassName: {{ template "gluu.storageClass" . }}
+{{- if and .provisioner.enabled (not .existingClaim) }}
+  selector:
+    matchLabels: 
       volume: {{ .name }}
-{{ include "gluu.labels" . | indent 10 }}
-  spec:
-    accessModes:
-    {{- range .accessModes }}
-      - {{ . | quote }}
-    {{- end }}
-    resources:
-      requests:
-        storage: {{ .size | quote }}
-  {{- if .storageClass }}
-  {{- if (eq "-" .storageClass) }}
-    storageClassName: ""
-  {{- else }}
-    storageClassName: {{ .storageClass | quote }}
-  {{- end }}
-  {{- end }}
-  {{- if and .provisioner.enabled (not .existingClaim) }}
-    selector:
-      matchLabels: 
-        volume: {{ .name }}
-{{ include "gluu.labels" . | indent 12 }}
-  {{- end }}
+{{ .labels | indent 6 }}
+{{- end }}
 {{- end -}}

@@ -1,0 +1,67 @@
+# the key rotation interval
+interval: 2
+
+# how often to check on rotations
+check: 3600
+
+# how many replications are needed
+replicas: 1
+
+## keyrotation image version
+## ref: https://hub.docker.com/r/bitnami/redis/tags/
+##
+image:
+  registry: docker.io
+  repository: gluufederation/key-rotation
+  ## Gluu image tag
+  ##
+  tag: 3.1.1_dev
+  ## Specify a imagePullPolicy
+  ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
+  ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
+  ##
+  pullPolicy: IfNotPresent
+  ## Optionally specify an array of imagePullSecrets.
+  ## Secrets must be manually created in the namespace.
+  ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+  ##
+  # pullSecrets:
+  #   - myRegistrKeySecretName
+
+## Tweak the available pod resources  
+## ref: http://kubernetes.io/docs/user-guide/compute-resources/
+##
+# resources:
+#   requests:
+#     memory: 256Mi
+#     cpu: 100m
+
+## Node labels for pod assignment
+## Ref: https://kubernetes.io/docs/user-guide/node-selection/
+##
+# nodeSelector: {}
+
+## Pods affinity/anti-affinity i.e. fancy way of doing nodeSelector
+## ref: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/
+##
+# affinity: {}
+
+## Pod tolerations
+## Ref: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
+##
+# tolerations: []
+
+## Use an alternate scheduler, e.g. "stork".
+## ref: https://kubernetes.io/docs/tasks/administer-cluster/configure-multiple-schedulers/
+##
+# schedulerName:
+
+## pod Annotation and Labels
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
+##
+# podAnnotations: {}
+
+## extra pod labels
+## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
+##
+# podLabels: {}

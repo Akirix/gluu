@@ -15,7 +15,7 @@ image:
   repository: gluufederation/oxauth
   ## Gluu image tag
   ##
-  tag: 3.1.1_dev
+  tag: 3.1.4_01
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -80,3 +80,59 @@ service:
   port: 8080
   type: ClusterIP
   nodePort: 30808
+  
+persistence:
+  enabled: true
+  volumes:
+    logs:
+      enabled: true
+      name: logs
+      size: 8Gi
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/oxtrust/logs"
+    libExt:
+      enabled: true
+      name: lib-ext
+      size: 8Gi
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/oxtrust/lib-ext"
+    customStatic:
+      enabled: true
+      name: custom-static
+      size: 8Gi
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/oxtrust/custom-static"
+    customPages:
+      enabled: true
+      name: custom-pages
+      size: 8Gi
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/oxtrust/custom-pages"

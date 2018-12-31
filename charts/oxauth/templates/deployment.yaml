@@ -72,3 +72,25 @@ spec:
             - containerPort: 8080
               protocol: TCP
               name: http
+          volumeMounts:
+            - name: logs
+              mountPath: /opt/gluu/jetty/oxauth/logs
+            - name: lib-ext
+              mountPath: /opt/gluu/jetty/oxauth/lib/ext
+            - name: custom-static
+              mountPath: /opt/gluu/jetty/oxauth/custom/static
+            - name: custom-pages
+              mountPath: /opt/gluu/jetty/oxauth/custom/pages
+      volumes:
+        - name: logs
+          persistentVolumeClaim:
+            claimName: {{ template "gluu.fullname" . }}-logs
+        - name: lib-ext
+          persistentVolumeClaim:
+            claimName: {{ template "gluu.fullname" . }}-lib-ext
+        - name: custom-static
+          persistentVolumeClaim:
+            claimName: {{ template "gluu.fullname" . }}-custom-static
+        - name: custom-pages
+          persistentVolumeClaim:
+            claimName: {{ template "gluu.fullname" . }}-custom-pages

@@ -15,7 +15,7 @@ image:
   repository: gluufederation/oxtrust
   ## Gluu image tag
   ##
-  tag: 3.1.1_dev
+  tag: 3.1.4_01
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images

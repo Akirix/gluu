@@ -1,4 +1,3 @@
-# the manual volumes
 {{- $volName := (include "gluu.fullname" .) }}
 {{- $volLabels := (include "gluu.labels" .) }}
 {{- $volNamespace := .Values.global.namespace }}
@@ -7,6 +6,8 @@
 {{- $_ := set $pv "fullName" (printf "%s-%s" $volName $pv.name) }}
 {{- $_ := set $pv "labels" $volLabels }}
 {{- $_ := set $pv "namespace" $volNamespace }}
-{{- include "gluu.pv" $pv }}
+{{ include "gluu.pv" $pv }}
+---
+{{ include "gluu.pvc" $pv }}
 ---
 {{- end }}
