@@ -1,0 +1,132 @@
+# the manual shared shib volume
+{{ $sharedShib := .Values.persistence.volumes.sharedShib }}
+{{- if and (and $sharedShib.enabled $sharedShib.provisioner.enabled) (not $sharedShib.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "gluu.fullname" . }}-shared-shib
+  namespace: "{{ .Values.global.namespace }}"
+  labels:
+    volume: shared-shib
+{{ include "gluu.labels" . | indent 4 }}
+spec:
+  capacity:
+    storage: {{ $sharedShib.size | quote }}
+  volumeMode: Filesystem
+  storageClassName: {{ template "gluu.storageClass" $sharedShib }}
+  accessModes:
+  {{- range $sharedShib.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  persistentVolumeReclaimPolicy: Recycle
+  {{ $sharedShib.provisioner.type }}:
+{{ toYaml $sharedShib.provisioner.spec | indent 4 }}
+{{- end }}
+
+---
+
+# the manual logs volume
+{{ $oxtrustLogs := .Values.persistence.volumes.logs }}
+{{- if and (and $oxtrustLogs.enabled $oxtrustLogs.provisioner.enabled) (not $oxtrustLogs.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "gluu.fullname" . }}-logs
+  namespace: "{{ .Values.global.namespace }}"
+  labels:
+    volume: logs
+{{ include "gluu.labels" . | indent 4 }}
+spec:
+  capacity:
+    storage: {{ $oxtrustLogs.size | quote }}
+  volumeMode: Filesystem
+  storageClassName: {{ template "gluu.storageClass" $oxtrustLogs }}
+  accessModes:
+  {{- range $oxtrustLogs.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  persistentVolumeReclaimPolicy: Recycle
+  {{ $oxtrustLogs.provisioner.type }}:
+{{ toYaml $oxtrustLogs.provisioner.spec | indent 4 }}
+{{- end }}
+
+---
+
+# the manual lib ext volume
+{{ $libExt := .Values.persistence.volumes.libExt }}
+{{- if and (and $libExt.enabled $libExt.provisioner.enabled) (not $libExt.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "gluu.fullname" . }}-lib-ext
+  namespace: "{{ .Values.global.namespace }}"
+  labels:
+    volume: lib-ext
+{{ include "gluu.labels" . | indent 4 }}
+spec:
+  capacity:
+    storage: {{ $libExt.size | quote }}
+  volumeMode: Filesystem
+  storageClassName: {{ template "gluu.storageClass" $libExt }}
+  accessModes:
+  {{- range $libExt.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  persistentVolumeReclaimPolicy: Recycle
+  {{ $libExt.provisioner.type }}:
+{{ toYaml $libExt.provisioner.spec | indent 4 }}
+{{- end }}
+
+---
+
+# the manual custom static ext volume
+{{ $customStatic := .Values.persistence.volumes.customStatic }}
+{{- if and (and $customStatic.enabled $customStatic.provisioner.enabled) (not $customStatic.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "gluu.fullname" . }}-custom-static
+  namespace: "{{ .Values.global.namespace }}"
+  labels:
+    volume: custom-static
+{{ include "gluu.labels" . | indent 4 }}
+spec:
+  capacity:
+    storage: {{ $customStatic.size | quote }}
+  volumeMode: Filesystem
+  storageClassName: {{ template "gluu.storageClass" $customStatic }}
+  accessModes:
+  {{- range $customStatic.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  persistentVolumeReclaimPolicy: Recycle
+  {{ $customStatic.provisioner.type }}:
+{{ toYaml $customStatic.provisioner.spec | indent 4 }}
+{{- end }}
+
+---
+
+# the manual custom static ext volume
+{{ $customPages := .Values.persistence.volumes.customPages }}
+{{- if and (and $customPages.enabled $customPages.provisioner.enabled) (not $customPages.existingClaim) }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ template "gluu.fullname" . }}-custom-pages
+  namespace: "{{ .Values.global.namespace }}"
+  labels:
+    volume: custom-pages
+{{ include "gluu.labels" . | indent 4 }}
+spec:
+  capacity:
+    storage: {{ $customPages.size | quote }}
+  volumeMode: Filesystem
+  storageClassName: {{ template "gluu.storageClass" $customPages }}
+  accessModes:
+  {{- range $customPages.accessModes }}
+    - {{ . | quote }}
+  {{- end }}
+  persistentVolumeReclaimPolicy: Recycle
+  {{ $customPages.provisioner.type }}:
+{{ toYaml $customPages.provisioner.spec | indent 4 }}
+{{- end }}

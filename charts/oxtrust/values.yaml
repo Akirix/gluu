@@ -89,3 +89,72 @@ service:
   port: 8080
   type: ClusterIP
   nodePort: 30808
+  
+persistence:
+  enabled: true
+  volumes:
+    sharedShib:
+      enabled: true
+      name: shared-shib
+      size: 8Gi
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/oxtrust/shared-shib"
+    logs:
+      enabled: true
+      name: logs
+      size: 8Gi
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/oxtrust/logs"
+    libExt:
+      enabled: true
+      name: lib-ext
+      size: 8Gi
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/oxtrust/lib-ext"
+    customStatic:
+      enabled: true
+      name: custom-static
+      size: 8Gi
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/oxtrust/custom-static"
+    customPages:
+      enabled: true
+      name: custom-pages
+      size: 8Gi
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/oxtrust/custom-pages"

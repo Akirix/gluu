@@ -78,7 +78,7 @@ spec:
             # name must match the volume name below
             - name: shared-shib
               mountPath: "/opt/shared-shibboleth-idp"
-            - name: oxtrust-logs
+            - name: logs
               mountPath: /opt/gluu/jetty/identity/logs
             - name: oxtrust-lib-ext
               mountPath: /opt/gluu/jetty/identity/lib/ext
@@ -98,21 +98,116 @@ spec:
               port: 8080
             initialDelaySeconds: 25
             periodSeconds: 25
-      volumes:
-        - name: shared-shib
-          persistentVolumeClaim:
-            claimName: shared-shib-volume-claim
-        - name: oxtrust-logs
-          persistentVolumeClaim:
-            claimName: oxtrust-logs-volume-claim
-        - name: oxtrust-lib-ext
-          persistentVolumeClaim:
-            claimName: oxtrust-lib-ext-volume-claim
-        - name: oxtrust-custom-static
-          persistentVolumeClaim:
-            claimName: oxtrust-custom-static-volume-claim
-        - name: oxtrust-custom-pages
-          persistentVolumeClaim:
-            claimName: oxtrust-custom-pages-volume-claim
+      volumes: []
   volumeClaimTemplates:
     
+    {{ $sharedShib := .Values.persistence.volumes.sharedShib }}
+    - metadata:
+        name: shared-shib
+        labels:
+          volume: shared-shib
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $sharedShib.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $sharedShib.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $sharedShib }}
+      {{- if and $sharedShib.provisioner.enabled (not $sharedShib.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: shared-shib
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}
+      
+    {{ $oxtrustLogs := .Values.persistence.volumes.logs }}
+    - metadata:
+        name: logs
+        labels:
+          volume: logs
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $oxtrustLogs.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $oxtrustLogs.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $oxtrustLogs }}
+      {{- if and $oxtrustLogs.provisioner.enabled (not $oxtrustLogs.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: logs
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}
+      
+    {{ $libExt := .Values.persistence.volumes.libExt }}
+    - metadata:
+        name: lib-ext
+        labels:
+          volume: lib-ext
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $libExt.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $libExt.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $libExt }}
+      {{- if and $libExt.provisioner.enabled (not $libExt.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: lib-ext
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}
+      
+    {{ $customStatic := .Values.persistence.volumes.customStatic }}
+    - metadata:
+        name: custom-static
+        labels:
+          volume: custom-static
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $customStatic.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $customStatic.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $customStatic }}
+      {{- if and $customStatic.provisioner.enabled (not $customStatic.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: custom-static
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}
+      
+    {{ $customPages := .Values.persistence.volumes.customPages }}
+    - metadata:
+        name: custom-pages
+        labels:
+          volume: custom-pages
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $customPages.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $customPages.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $customStatic }}
+      {{- if and $customPages.provisioner.enabled (not $customPages.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: custom-pages
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}
+      

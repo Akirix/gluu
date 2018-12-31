@@ -97,3 +97,48 @@ Creates consul env vars
 {{- end }}
 {{- end }}
 {{- end -}}
+
+{{/*
+Get the correct storage class for something with a storage class field
+*/}}
+{{- define "gluu.storageClass" -}}
+{{- if .storageClass -}}
+{{- if (eq "-" .storageClass) -}}
+""
+{{- else -}}
+{{- printf "%s" .storageClass | quote -}}
+{{- end -}}
+{{- end -}}
+{{- end -}}
+
+{{/*
+Create a PVC template for stateful sets
+*/}}
+{{- define "gluu.pvc-spec" -}}
+- metadata:
+    name: {{ template "gluu.fullname" . }}-{{ .name }}
+    labels:
+      volume: {{ .name }}
+{{ include "gluu.labels" . | indent 10 }}
+  spec:
+    accessModes:
+    {{- range .accessModes }}
+      - {{ . | quote }}
+    {{- end }}
+    resources:
+      requests:
+        storage: {{ .size | quote }}
+  {{- if .storageClass }}
+  {{- if (eq "-" .storageClass) }}
+    storageClassName: ""
+  {{- else }}
+    storageClassName: {{ .storageClass | quote }}
+  {{- end }}
+  {{- end }}
+  {{- if and .provisioner.enabled (not .existingClaim) }}
+    selector:
+      matchLabels: 
+        volume: {{ .name }}
+{{ include "gluu.labels" . | indent 12 }}
+  {{- end }}
+{{- end -}}
