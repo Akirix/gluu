@@ -1,8 +1,13 @@
-# the key rotation interval
-interval: 2
+# the cool variables
 
-# how often to check on rotations
-check: 3600
+orgName: k8s
+adminPass: password
+email: k8s@email.com
+domain: localhost
+country: US
+state: UT
+city: SLC
+ldapType: opendj
 
 # how many replications are needed
 replicas: 1
@@ -12,10 +17,10 @@ replicas: 1
 ##
 image:
   registry: docker.io
-  repository: gluufederation/key-rotation
+  repository: gluufederation/config-init
   ## Gluu image tag
   ##
-  tag: 3.1.1_dev
+  tag: 3.1.4_03
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images

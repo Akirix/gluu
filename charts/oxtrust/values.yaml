@@ -93,19 +93,6 @@ service:
 persistence:
   enabled: true
   volumes:
-    sharedShib:
-      enabled: true
-      name: shared-shib
-      size: 8Gi
-      storageClass: "-"
-      # existingClaim: "-"
-      accessModes:
-        - ReadWriteOnce
-      provisioner:
-        enabled: false
-        type: hostPath
-        spec:
-          path: "/oxtrust/shared-shib"
     logs:
       enabled: true
       name: logs

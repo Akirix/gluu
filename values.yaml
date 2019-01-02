@@ -20,6 +20,23 @@ global:
   ldap:
     - host: ldap
       port: 1389
+      
+  persistence:
+    enabled: true
+    volumes:
+      sharedShib:
+        enabled: true
+        name: shared-shib
+        size: 8Gi
+        storageClass: "-"
+        # existingClaim: "-"
+        accessModes:
+          - ReadWriteOnce
+        provisioner:
+          enabled: false
+          type: hostPath
+          spec:
+            path: "/oxtrust/shared-shib"
   
 keyrotation:
   interval: 2
@@ -28,3 +45,13 @@ keyrotation:
 # oxauth:
   # maxRamFraction: 
   # debugPort: 
+  
+config-init:
+  orgName: k8s
+  adminPass: password
+  email: k8s@email.com
+  domain: localhost
+  country: US
+  state: UT
+  city: SLC
+  ldapType: opendj

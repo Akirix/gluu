@@ -1,61 +1,114 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: oxshibboleth
+  name: {{ template "gluu.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
   labels:
-    app: oxshibboleth
+{{ include "gluu.labels" . | indent 4 }}
 spec:
-  serviceName: oxshibboleth
-  replicas: 1
+  serviceName: {{ template "gluu.fullname" . }}
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: oxshibboleth
+{{ include "gluu.labels" . | indent 6 }}
   template:
     metadata:
       labels:
-        app: oxshibboleth
+{{ include "gluu.labels" . | indent 8 }}
+        {{- if .Values.podLabels }}
+{{ toYaml .Values.podLabels | indent 8 }}
+        {{- end }}
     spec:
+      {{- if .Values.hostAliases }}
+      hostAliases: 
+{{ toYaml .Values.hostAliases | indent 8 }}
+      {{- end }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+        {{- end}}
+      {{- end}}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      {{- end }}
+      {{- if .Values.schedulerName }}
+      schedulerName: "{{ .Values.schedulerName }}"
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: 
+{{ toYaml .Values.affinity | indent 8 }}
+      {{- end }}
       containers:
-      - name: oxshibboleth
-        imagePullPolicy: Always
-        image: gluufederation/oxshibboleth:3.1.4_01
+        - name: {{ template "gluu.fullname" . }}
+          imagePullPolicy: {{ default "" .Values.image.pullPolicy | quote }}
+          image: "{{ template "gluu.image" . }}"
+          {{- if .Values.resources }}
+          resources:
+{{ toYaml .Values.resources | indent 12 }}
+          {{- end }}
+          ports:
+            - name: http
+              containerPort: 8080
+              protocol: TCP
+          env:
+            - name: GLUU_CONFIG_ADAPTER
+              value: "kubernetes"
+            - name: GLUU_OXAUTH_BACKEND
+              value: {{ printf "%s-oxauth:%s" .Release.Name "8080" }}
+            {{- if .Values.maxRamFraction }}
+            - name: GLUU_MAX_RAM_FRACTION
+              value: {{ .Values.maxRamFraction }}
+            {{- end }}
+            {{- if .Values.debugPort }}
+            - name: GLUU_DEBUG_PORT
+              value: {{ .Values.debugPort }}
+            {{- end }}
+            - name: GLUU_LDAP_URL
+              value: "{{ template "gluu.ldaplist" .Values.global.ldap }}"
+{{ include "gluu.commonvars" . | indent 12 }}
+          volumeMounts:
+            # name must match the volume name below
+            - name: shared-shib
+              mountPath: "/opt/shared-shibboleth-idp"
+          livenessProbe:
+            httpGet:
+              path: /idp
+              port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /idp
+              port: 8080
+            initialDelaySeconds: 25
+            periodSeconds: 25
+      volumes: []
+  volumeClaimTemplates:
+      
+    {{ $sharedShib := .Values.global.persistence.volumes.sharedShib }}
+    - metadata:
+        name: shared-shib
+        labels:
+          volume: shared-shib
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $sharedShib.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
         resources:
           requests:
-            memory: "1000Mi"
-          limits:
-            memory: "1536Mi"
-        ports:
-        - containerPort: 8080
-        env:
-          - name: GLUU_CONFIG_ADAPTER
-            value: "kubernetes"
-          - name: GLUU_LDAP_URL
-            value: "opendj:1636"
-          - name: GLUU_OXAUTH_BACKEND
-            value: "oxauth:8080"
-          - name: GLUU_MAX_RAM_FRACTION
-            value: "1"
-        volumeMounts:
-          # name must match the volume name below
-          - name: shared-shib
-            mountPath: "/opt/shared-shibboleth-idp"
-        livenessProbe:
-          httpGet:
-            path: /idp
-            port: 8080
-          initialDelaySeconds: 30
-          periodSeconds: 30
-        readinessProbe:
-          httpGet:
-            path: /idp
-            port: 8080
-          initialDelaySeconds: 25
-          periodSeconds: 25
-      hostAliases:
-      - ip: NGINX_IP
-        hostnames:
-        - kube.gluu.local
-      volumes:
-      - name: shared-shib
-        persistentVolumeClaim:
-          claimName: shared-shib-volume-claim
+            storage: {{ $sharedShib.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $sharedShib }}
+      {{- if and $sharedShib.provisioner.enabled (not $sharedShib.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: shared-shib
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}

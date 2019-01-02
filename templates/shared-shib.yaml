@@ -1,0 +1,12 @@
+{{- $volName := (include "gluu.fullname" .) }}
+{{- $volLabels := (include "gluu.labels" .) }}
+{{- $volNamespace := .Values.global.namespace }}
+
+{{- $pv := .Values.global.persistence.volumes.sharedShib }}
+{{- $_ := set $pv "fullName" (printf "%s-%s" $volName $pv.name) }}
+{{- $_ := set $pv "labels" $volLabels }}
+{{- $_ := set $pv "namespace" $volNamespace }}
+{{- include "gluu.pv" $pv }}
+---
+{{ include "gluu.pvc" $pv }}
+---

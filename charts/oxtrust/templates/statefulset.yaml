@@ -23,7 +23,7 @@ spec:
       hostAliases: 
 {{ toYaml .Values.hostAliases | indent 8 }}
       {{- end }}
-            {{- if .Values.image.pullSecrets }}
+      {{- if .Values.image.pullSecrets }}
       imagePullSecrets:
         {{- range .Values.image.pullSecrets }}
         - name: {{ . }}
@@ -45,9 +45,9 @@ spec:
 {{ toYaml .Values.affinity | indent 8 }}
       {{- end }}
       containers:
-        - name: oxtrust
-          imagePullPolicy: Always
-          image: gluufederation/oxtrust:3.1.4_01
+        - name: {{ template "gluu.fullname" . }}
+          imagePullPolicy: {{ default "" .Values.image.pullPolicy | quote }}
+          image: "{{ template "gluu.image" . }}"
           {{- if .Values.resources }}
           resources:
 {{ toYaml .Values.resources | indent 10 }}
@@ -101,7 +101,7 @@ spec:
       volumes: []
   volumeClaimTemplates:
     
-    {{ $sharedShib := .Values.persistence.volumes.sharedShib }}
+    {{ $sharedShib := .Values.global.persistence.volumes.sharedShib }}
     - metadata:
         name: shared-shib
         labels:

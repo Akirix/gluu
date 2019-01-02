@@ -1,21 +1,15 @@
-# the key rotation interval
-interval: 2
-
-# how often to check on rotations
-check: 3600
-
 # how many replications are needed
 replicas: 1
 
-## keyrotation image version
+## nginx image version
 ## ref: https://hub.docker.com/r/bitnami/redis/tags/
 ##
 image:
   registry: docker.io
-  repository: gluufederation/oxshibboleth
+  repository: gluufederation/opendj
   ## Gluu image tag
   ##
-  tag: 3.1.4_01
+  tag: 3.1.4_03
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
@@ -31,11 +25,10 @@ image:
 ## Tweak the available pod resources  
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
-resources:
-  requests:
-    memory: "1000Mi"
-  limits:
-    memory: "1536Mi"
+# resources:
+#   requests:
+#     memory: 256Mi
+#     cpu: 100m
 
 ## Node labels for pod assignment
 ## Ref: https://kubernetes.io/docs/user-guide/node-selection/
@@ -70,7 +63,7 @@ resources:
 service:
   # annotations: {}
   clusterIP: ""
-
+  type: ClusterIP
   ## List of IP addresses at which the service is available
   ## Ref: https://kubernetes.io/docs/user-guide/services/#external-ips
   ##
@@ -78,6 +71,9 @@ service:
 
   loadBalancerIP: ""
   loadBalancerSourceRanges: []
-  port: 8080
-  type: ClusterIP
-  nodePort: 30809
+  http:
+    port: 8080
+    nodePort: 30080
+  https:
+    port: 8081
+    nodePort: 30081

@@ -1,43 +1,64 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: config-init
+  name: {{ template "gluu.fullname" . }}-generate
+  namespace: {{ .Values.global.namespace }}
+  labels:
+{{ include "gluu.labels" . | indent 4 }}
 spec:
   template:
     metadata:
       labels:
-        app: config-init
+{{ include "gluu.labels" . | indent 8 }}
     spec:
       restartPolicy: Never
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+        {{- end}}
+      {{- end}}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      {{- end }}
+      {{- if .Values.schedulerName }}
+      schedulerName: "{{ .Values.schedulerName }}"
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: 
+{{ toYaml .Values.affinity | indent 8 }}
+      {{- end }}
       volumes:
         - name: config
           persistentVolumeClaim:
-            claimName: config-volume-claim
+            claimName: {{ template "gluu.fullname" . }}
       containers:
-        - name: config-init
-          image: 'gluufederation/config-init:3.1.4_03'
+        - name: {{ template "gluu.fullname" . }}
+          image: "{{ template "gluu.image" . }}"
           volumeMounts:
-            - mountPath: /opt/config-init/db/
-              name: config
+            - name: config
+              mountPath: /opt/config-init/db/
           env:
-            - name: GLUU_CONFIG_ADAPTER
-              value: kubernetes
+{{ include "gluu.commonvars" . | indent 12 }}            
             - name: ADMIN_PW
-              value: "secret"
+              value: {{ .Values.adminPass }}
             - name: EMAIL
-              value: "support@gluu.local"
+              value: {{ .Values.email }}
             - name: DOMAIN
-              value: "kube.gluu.local"
+              value: {{ .Values.domain  }}
             - name: ORG_NAME
-              value: "Gluu, Inc"
+              value: {{ .Values.orgName }}
             - name: COUNTRY_CODE
-              value: "US"
+              value: {{ .Values.country }}
             - name: STATE
-              value: "TX"
+              value: {{ .Values.state }}
             - name: CITY
-              value: "Austin"
-            - name: GLUU_CONFIG_ADAPTER
-              value: "kubernetes"
+              value: {{ .Values.city }}
             - name: LDAP_TYPE
-              value: "opendj"
+              value: {{ .Values.ldapType }}
           command: ["python", "/opt/config-init/scripts/entrypoint.py", "generate", "--admin-pw", "$(ADMIN_PW)", "--email", "$(EMAIL)", "--domain", "$(DOMAIN)", "--org-name", "$(ORG_NAME)", "--country-code", "$(COUNTRY_CODE)", "--state", "$(STATE)", "--city", "$(CITY)", "--ldap-type", "$(LDAP_TYPE)"]
