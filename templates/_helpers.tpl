@@ -59,8 +59,13 @@ Also, we can't use a single if because lazy evaluation is not an option
 Creates a csv list of the ldap servers
 */}}
 {{- define "gluu.ldaplist" -}}
+{{- $hosts := .Values.global.ldap.extraHosts -}}
+{{- $genLdap := dict "host" (printf "%s-%s" .Release.Name .Values.global.ldap.type) "port" 1389.00 -}}
+{{- $hosts := prepend $hosts $genLdap -}}
 {{- $local := dict "first" true -}}
-{{- range $k, $v := . -}}{{- if not $local.first -}},{{- end -}}{{- printf "%s:%.f" $v.host $v.port -}}{{- $_ := set $local "first" false -}}{{- end -}}
+{{- range $k, $v := $hosts -}}
+{{- if not $local.first -}},{{- end -}}{{- printf "%s:%.f" $v.host $v.port -}}{{- $_ := set $local "first" false -}}
+{{- end -}}
 {{- end -}}
 
 
@@ -69,31 +74,31 @@ Creates consul env vars
 */}}
 {{- define "gluu.commonvars" -}}
 - name: GLUU_KUBERNETES_NAMESPACE
-  value: {{ .Values.global.namespace }}
+  value: {{ .Values.global.namespace | quote }}
 - name: GLUU_KUBERNETES_CONFIGMAP
-  value: {{ .Values.global.configMapName }}
+  value: {{ .Values.global.configMapName | quote }}
 - name: GLUU_CONFIG_ADAPTER
-  value: {{ .Values.global.configAdapter }}
+  value: {{ .Values.global.configAdapter | quote }}
 {{- if eq .Values.global.configAdapter "consul" }}
 {{- with .Values.global.consul }}
 - name: GLUU_CONSUL_HOST # or GLUU_KV_HOST 
-  value: {{ .host }}
+  value: {{ .host | quote }}
 - name: GLUU_CONSUL_PORT # or GLUU_KV_PORT 
   value: {{ .port | quote }}
 - name: GLUU_CONSUL_CONSISTENCY
-  value: {{ .consistency }}
+  value: {{ .consistency | quote }}
 - name: GLUU_CONSUL_SCHEME
-  value: {{ .scheme }}
+  value: {{ .scheme | quote }}
 - name: GLUU_CONSUL_VERIFY
-  value: {{ .verify }}
+  value: {{ .verify | quote }}
 - name: GLUU_CONSUL_CACERT_FILE
-  value: '/etc/certs/consul_ca.crt'
+  value: "/etc/certs/consul_ca.crt"
 - name: GLUU_CONSUL_CERT_FILE
-  value: '/etc/certs/consul_client.crt'
+  value: "/etc/certs/consul_client.crt"
 - name: GLUU_CONSUL_KEY_FILE
-  value: '/etc/certs/consul_client.key'
+  value: "/etc/certs/consul_client.key"
 - name: GLUU_CONSUL_TOKEN_FILE
-  value: '/etc/certs/consul_token'
+  value: "/etc/certs/consul_token"
 {{- end }}
 {{- end }}
 {{- end -}}

@@ -3,12 +3,13 @@ global:
   namespace: default
 
   # Options: consul or kubernetes
-  configAdapter: consul
+  configAdapter: kubernetes
   
   # the name of some kind of configmap
   configMapName: gluu
   
   consul:
+    enabled: false # whether or not to have this chart create the consul server
     host: consul
     port: 8500
     scheme: http # options: http or https
@@ -20,10 +21,8 @@ global:
   ldap:
     # options: opendj or openldap
     type: opendj
-    enabled: true
-    hosts:
-      - host: ldap
-        port: 1389
+    enabled: true # whether or not to have this chart create the LDAP server
+    extraHosts: [] # array of k,v like so: host: somehost, port: someport
       
   persistence:
     enabled: true
@@ -58,10 +57,11 @@ config-init:
   country: US
   state: UT
   city: SLC
-  ldapType: opendj
 
 opendj:  
+  enabled: true
   init: true
+  enableTLS: false # does nothing yet
   oxtrustConfigGen: true
   cacheType: IN_MEMORY
   redis:

@@ -58,21 +58,21 @@ spec:
               protocol: TCP
           env:
             - name: GLUU_OXAUTH_BACKEND
-              value: {{ printf "%s-oxauth:%s" .Release.Name "8080" }}
+              value: {{ (printf "%s-oxauth:%s" .Release.Name "8080") | quote }}
             - name: GLUU_SHIB_SOURCE_DIR
-              value: '/opt/shibboleth-idp'
+              value: "/opt/shibboleth-idp"
             - name: GLUU_SHIB_TARGET_DIR
-              value: '/opt/shared-shibboleth-idp'
+              value: "/opt/shared-shibboleth-idp"
             {{- if .Values.maxRamFraction }}
             - name: GLUU_MAX_RAM_FRACTION
-              value: {{ .Values.maxRamFraction }}
+              value: {{ .Values.maxRamFraction | quote }}
             {{- end }}
             {{- if .Values.debugPort }}
             - name: GLUU_DEBUG_PORT
-              value: {{ .Values.debugPort }}
+              value: {{ .Values.debugPort | quote }}
             {{- end }}
             - name: GLUU_LDAP_URL
-              value: "{{ template "gluu.ldaplist" .Values.global.ldap.hosts }}"
+              value: "{{ template "gluu.ldaplist" . }}"
 {{ include "gluu.commonvars" . | indent 12 }}
           volumeMounts:
             # name must match the volume name below
