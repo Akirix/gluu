@@ -63,7 +63,7 @@ spec:
             - name: GLUU_KEY_ROTATION_CHECK
               value: {{ .Values.check | quote }}
             - name: GLUU_LDAP_URL
-              value: "{{ template "gluu.ldaplist" .Values.global.ldap }}"
+              value: "{{ template "gluu.ldaplist" .Values.global.ldap.hosts }}"
 {{ include "gluu.commonvars" . | indent 12 }}
           volumeMounts:
             {{- if .Values.global.consul.tlsSecretName }}

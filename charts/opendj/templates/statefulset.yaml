@@ -1,88 +1,216 @@
 apiVersion: apps/v1beta2
 kind: StatefulSet
 metadata:
-  name: opendj-init
+  name: {{ template "gluu.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+{{ include "gluu.labels" . | indent 4 }}
 spec:
-  serviceName: opendj
-  replicas: 1
+  serviceName: {{ template "gluu.fullname" . }}
+  replicas: {{ .Values.replicas }}
   selector:
     matchLabels:
-      app: opendj
+{{ include "gluu.labels" . | indent 6 }}
   template:
     metadata:
       labels:
-        app: opendj
+{{ include "gluu.labels" . | indent 8 }}
+        {{- if .Values.podLabels }}
+{{ toYaml .Values.podLabels | indent 8 }}
+        {{- end }}
     spec:
-      volumes:
-        - name: opendj-config
-          persistentVolumeClaim:
-            claimName: opendj-config-volume-claim
-        - name: opendj-ldif
-          persistentVolumeClaim:
-            claimName: opendj-ldif-volume-claim
-        - name: opendj-logs
-          persistentVolumeClaim:
-            claimName: opendj-logs-volume-claim
-        - name: opendj-db
-          persistentVolumeClaim:
-            claimName: opendj-db-volume-claim
-        - name: opendj-flag
-          persistentVolumeClaim:
-            claimName: opendj-flag-volume-claim
+      {{- if .Values.hostAliases }}
+      hostAliases: 
+{{ toYaml .Values.hostAliases | indent 8 }}
+      {{- end }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+        {{- end}}
+      {{- end}}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      {{- end }}
+      {{- if .Values.schedulerName }}
+      schedulerName: "{{ .Values.schedulerName }}"
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: 
+{{ toYaml .Values.affinity | indent 8 }}
+      {{- end }}
       containers:
-      - name: opendj
-        imagePullPolicy: Always
-        image: 'gluufederation/opendj:3.1.4_03'
-        env:
-          - name: GLUU_CONFIG_ADAPTER
-            value: "kubernetes"
-          - name: GLUU_LDAP_INIT
-            value: "true"
-          - name: GLUU_LDAP_INIT_HOST
-            value: "opendj"
-          - name: GLUU_LDAP_INIT_PORT
-            value: "1636"
-          - name: GLUU_OXTRUST_CONFIG_GENERATION
-            value: "true"
-          - name: GLUU_CACHE_TYPE
-            value: "NATIVE_PERSISTENCE"
-          # - name: GLUU_CACHE_TYPE
-          #   value: "REDIS"
-          # - name: GLUU_REDIS_TYPE
-          #   value: "STANDALONE"
-          # - name: GLUU_REDIS_URL
-          #   value: "redis:6379"
-          # the value must match serviceName `opendj` because other containers
-          # use this value as LDAP hostname
-          - name: GLUU_CERT_ALT_NAME
-            value: "opendj"
-        ports:
-          - containerPort: 1636
-            name: ldaps
-          - containerPort: 1389
-            name: ldap
-          - containerPort: 8989
-            name: replication
-          - containerPort: 4444
-            name: admin
-        volumeMounts:
-          - mountPath: /opt/opendj/config
-            name: opendj-config
-          - mountPath: /opt/opendj/ldif
-            name: opendj-ldif
-          - mountPath: /opt/opendj/logs
-            name: opendj-logs
-          - mountPath: /opt/opendj/db
-            name: opendj-db
-          - mountPath: /flag
-            name: opendj-flag
-        readinessProbe:
-          tcpSocket:
-            port: 1636
-          initialDelaySeconds: 25
-          periodSeconds: 25
-        livenessProbe:
-          tcpSocket:
-            port: 1636
-          initialDelaySeconds: 30
-          periodSeconds: 30
+        - name: {{ template "gluu.fullname" . }}
+          imagePullPolicy: {{ default "" .Values.image.pullPolicy | quote }}
+          image: "{{ template "gluu.image" . }}"
+          env:
+            - name: GLUU_LDAP_INIT
+              value: {{ .Values.init | quote }}
+            {{- if .Values.init }}
+            - name: GLUU_LDAP_INIT_HOST
+              value: {{ include "gluu.fullname" . }}
+            - name: GLUU_LDAP_INIT_PORT
+              value: {{ .Values.service.ldaps.port }}
+            {{- end }}
+            - name: GLUU_CACHE_TYPE
+              value: {{ .Values.cacheType }}
+            {{- if eq .Values.cacheType "REDIS" }}
+            - name: GLUU_REDIS_TYPE
+              value: {{ .Values.redis.type }}
+            - name: GLUU_REDIS_URL
+              value: {{ .Values.redis.host }}:{{ .Values.redis.port }}
+            {{- end }}
+            # the value must match serviceName `opendj` because other containers
+            # use this value as LDAP hostname
+            - name: GLUU_CERT_ALT_NAME
+              value: "{{ template "gluu.fullname" . }}"
+            - name: GLUU_OXTRUST_CONFIG_GENERATION
+              value: {{ .Values.oxtrustConfigGen }}
+{{ include "gluu.commonvars" . | indent 12 }}
+          ports:
+            - name: ldap
+              containerPort: {{ .Values.service.ldap.port }}
+            - name: ldaps
+              containerPort: {{ .Values.service.ldaps.port }}
+            - name: admin
+              containerPort: {{ .Values.service.admin.port }}
+            - name: replication
+              containerPort: {{ .Values.service.replication.port }}
+          volumeMounts:
+            - name: config
+              mountPath: /opt/opendj/config
+            - name: ldif
+              mountPath: /opt/opendj/ldif
+            - name: logs
+              mountPath: /opt/opendj/logs
+            - name: db
+              mountPath: /opt/opendj/db
+            - name: flag
+              mountPath: /flag
+          readinessProbe:
+            tcpSocket:
+              port: 1636
+            initialDelaySeconds: 25
+            periodSeconds: 25
+          livenessProbe:
+            tcpSocket:
+              port: 1636
+            initialDelaySeconds: 30
+            periodSeconds: 30
+      volumes: []
+  volumeClaimTemplates:
+    
+    {{- $ldapConfig := .Values.persistence.volumes.config }}
+    - metadata:
+        name: config
+        labels:
+          volume: config
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $ldapConfig.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $ldapConfig.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $ldapConfig }}
+      {{- if and $ldapConfig.provisioner.enabled (not $ldapConfig.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: config
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}
+      
+    {{- $ldapLdif := .Values.persistence.volumes.ldif }}
+    - metadata:
+        name: ldif
+        labels:
+          volume: ldif
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $ldapLdif.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $ldapLdif.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $ldapLdif }}
+      {{- if and $ldapConfig.provisioner.enabled (not $ldapConfig.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: ldif
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}
+      
+    {{- $ldapLogs := .Values.persistence.volumes.logs }}
+    - metadata:
+        name: logs
+        labels:
+          volume: logs
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $ldapLogs.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $ldapLogs.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $ldapLogs }}
+      {{- if and $ldapLogs.provisioner.enabled (not $ldapLogs.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: logs
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}
+      
+    {{- $ldapDB := .Values.persistence.volumes.db }}
+    - metadata:
+        name: db
+        labels:
+          volume: db
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $ldapDB.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $ldapDB.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $ldapDB }}
+      {{- if and $ldapDB.provisioner.enabled (not $ldapDB.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: db
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}
+      
+    {{- $ldapFlag := .Values.persistence.volumes.flag }}
+    - metadata:
+        name: flag
+        labels:
+          volume: flag
+{{ include "gluu.labels" . | indent 10 }}
+      spec:
+        accessModes:
+        {{- range $ldapFlag.accessModes }}
+          - {{ . | quote }}
+        {{- end }}
+        resources:
+          requests:
+            storage: {{ $ldapFlag.size | quote }}
+        storageClassName: {{ template "gluu.storageClass" $ldapFlag }}
+      {{- if and $ldapFlag.provisioner.enabled (not $ldapFlag.existingClaim) }}
+        selector:
+          matchLabels: 
+            volume: flag
+{{ include "gluu.labels" . | indent 12 }}
+      {{- end }}

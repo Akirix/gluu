@@ -70,7 +70,7 @@ spec:
               value: {{ .Values.debugPort }}
             {{- end }}
             - name: GLUU_LDAP_URL
-              value: "{{ template "gluu.ldaplist" .Values.global.ldap }}"
+              value: "{{ template "gluu.ldaplist" .Values.global.ldap.hosts }}"
 {{ include "gluu.commonvars" . | indent 12 }}
           volumeMounts:
             # name must match the volume name below

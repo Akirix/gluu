@@ -18,8 +18,12 @@ global:
     
   ## An array of available ldap hosts to use
   ldap:
-    - host: ldap
-      port: 1389
+    # options: opendj or openldap
+    type: opendj
+    enabled: true
+    hosts:
+      - host: ldap
+        port: 1389
       
   persistence:
     enabled: true
@@ -55,3 +59,12 @@ config-init:
   state: UT
   city: SLC
   ldapType: opendj
+
+opendj:  
+  init: true
+  oxtrustConfigGen: true
+  cacheType: IN_MEMORY
+  redis:
+    type: STANDALONE
+    host: redis
+    port: 6379

@@ -1,3 +1,19 @@
+# the fun ones
+
+# whether to import initial LDAP entries (possible values are true or false).
+init: true
+
+oxtrustConfigGen: true
+
+# options: IN_MEMORY, NATIVE_PERSISTENCE, REDIS, MEMCACHED
+cacheType: IN_MEMORY
+
+redis:
+  # options: STANDALONE or CLUSTER
+  type: STANDALONE
+  host: redis
+  port: 6379
+
 # how many replications are needed
 replicas: 1
 
@@ -14,7 +30,7 @@ image:
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
   ## ref: http://kubernetes.io/docs/user-guide/images/#pre-pulling-images
   ##
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   ## Optionally specify an array of imagePullSecrets.
   ## Secrets must be manually created in the namespace.
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
@@ -71,9 +87,90 @@ service:
 
   loadBalancerIP: ""
   loadBalancerSourceRanges: []
-  http:
-    port: 8080
-    nodePort: 30080
-  https:
-    port: 8081
-    nodePort: 30081
+  ldap:
+    port: 1389
+    nodePort: 30389
+  ldaps:
+    port: 1636
+    nodePort: 30636
+  admin:
+    port: 4444
+    nodePort: 30444
+  replication:
+    port: 8989
+    nodePort: 30989
+    
+# set up some volumes 
+persistence:
+  enabled: true
+  volumes:
+    config:
+      enabled: true
+      name: config
+      size: 100M
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/opendj/config"
+          type: DirectoryOrCreate
+    ldif:
+      enabled: true
+      name: ldif
+      size: 100M
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/opendj/ldif"
+          type: DirectoryOrCreate
+    logs:
+      enabled: true
+      name: logs
+      size: 100M
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/opendj/logs"
+          type: DirectoryOrCreate
+    db:
+      enabled: true
+      name: db
+      size: 5Gi
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/opendj/db"
+          type: DirectoryOrCreate
+    flag:
+      enabled: true
+      name: flag
+      size: 100M
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/opendj/flag"
+          type: DirectoryOrCreate
