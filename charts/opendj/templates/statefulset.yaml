@@ -53,17 +53,17 @@ spec:
               value: {{ .Values.init | quote }}
             {{- if .Values.init }}
             - name: GLUU_LDAP_INIT_HOST
-              value: {{ include "gluu.fullname" . }}
+              value: {{ (include "gluu.fullname" .) | quote }}
             - name: GLUU_LDAP_INIT_PORT
-              value: {{ .Values.service.ldaps.port }}
+              value: {{ .Values.service.ldaps.port | quote }}
             {{- end }}
             - name: GLUU_CACHE_TYPE
-              value: {{ .Values.cacheType }}
+              value: {{ .Values.cacheType | quote }}
             {{- if eq .Values.cacheType "REDIS" }}
             - name: GLUU_REDIS_TYPE
-              value: {{ .Values.redis.type }}
+              value: {{ .Values.redis.type | quote }}
             - name: GLUU_REDIS_URL
-              value: {{ .Values.redis.host }}:{{ .Values.redis.port }}
+              value: "{{ .Values.redis.host }}:{{ .Values.redis.port }}"
             {{- end }}
             # the value must match serviceName `opendj` because other containers
             # use this value as LDAP hostname

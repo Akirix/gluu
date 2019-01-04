@@ -66,7 +66,7 @@ spec:
               value: {{ .Values.debugPort }}
             {{- end }}
             - name: GLUU_LDAP_URL
-              value: "{{ template "gluu.ldaplist" .Values.global.ldap.hosts }}"
+              value: "{{ template "gluu.ldaplist" . }}"
 {{ include "gluu.commonvars" . | indent 12 }}
           ports:
             - containerPort: 8080

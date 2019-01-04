@@ -60,5 +60,5 @@ spec:
             - name: CITY
               value: {{ .Values.city }}
             - name: LDAP_TYPE
-              value: {{ .Values.ldapType }}
+              value: {{ .Values.global.ldap.type }}
           command: ["python", "/opt/config-init/scripts/entrypoint.py", "generate", "--admin-pw", "$(ADMIN_PW)", "--email", "$(EMAIL)", "--domain", "$(DOMAIN)", "--org-name", "$(ORG_NAME)", "--country-code", "$(COUNTRY_CODE)", "--state", "$(STATE)", "--city", "$(CITY)", "--ldap-type", "$(LDAP_TYPE)"]
