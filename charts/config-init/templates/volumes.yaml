@@ -1,31 +1,14 @@
-kind: PersistentVolumeClaim
-apiVersion: v1
-metadata:
-  name: config-volume-claim
-spec:
-  storageClassName: ""
-  volumeName: config
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 10M
-  selector:
-    matchLabels:
-      config-init: config
-
+# the manual volumes
+{{- $volName := (include "gluu.fullname" .) }}
+{{- $volLabels := (include "gluu.labels" .) }}
+{{- $volNamespace := .Values.global.namespace }}
+{{- range .Values.persistence.volumes }}
+{{- $pv := . }}
+{{- $_ := set $pv "fullName" (printf "%s-%s" $volName $pv.name) }}
+{{- $_ := set $pv "labels" $volLabels }}
+{{- $_ := set $pv "namespace" $volNamespace }}
+{{- include "gluu.pv" $pv }}
 ---
-
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: config
-  labels:
-      config-init: config
-spec:
-  capacity:
-    storage: 10M
-  accessModes:
-    - ReadWriteOnce
-  hostPath:
-    path: "/data/config/db"
+{{- include "gluu.pvc" $pv }}
+---
+{{- end }}

@@ -70,3 +70,22 @@ image:
 ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/
 ##
 # podLabels: {}
+
+# set up some volumes 
+persistence:
+  enabled: true
+  volumes:
+    config:
+      enabled: true
+      name: config
+      size: 10M
+      storageClass: "-"
+      # existingClaim: "-"
+      accessModes:
+        - ReadWriteOnce
+      provisioner:
+        enabled: false
+        type: hostPath
+        spec:
+          path: "/gluu/config"
+          type: DirectoryOrCreate
