@@ -58,7 +58,7 @@ spec:
               protocol: TCP
           env:
             - name: GLUU_OXAUTH_BACKEND
-              value: {{ (printf "%s-oxauth:%s" .Release.Name "8080") | quote }}
+              value: {{ (printf "%s-oxauth:%.f" .Release.Name .Values.global.oxauth.port) | quote }}
             - name: GLUU_SHIB_SOURCE_DIR
               value: "/opt/shibboleth-idp"
             - name: GLUU_SHIB_TARGET_DIR

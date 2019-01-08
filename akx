@@ -93,6 +93,10 @@ kube_commands() {
 		'run')
 			helm install . $helm_sets -f ./env/dev-server.yaml
 			;;
+		'delete')
+			helm delete $2 --purge
+			kubectl delete pod $(kubectl get pod | grep $2 | awk '{print $1}')
+			;;
 		*)
 			echo "Command not found"
 			;;

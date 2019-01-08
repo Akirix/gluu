@@ -1,13 +1,15 @@
 kind: RoleBinding
 apiVersion: rbac.authorization.k8s.io/v1
 metadata:
-  name: gluu-rolebinding
-  namespace: default
+  name: {{ template "gluu.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+{{ include "gluu.labels" . | indent 4 }}
 subjects:
 - kind: User
   name: system:serviceaccount:default:default # Name is case sensitive
   apiGroup: rbac.authorization.k8s.io
 roleRef:
   kind: Role # this must be Role or ClusterRole
-  name: gluu-role # this must match the name of the Role or ClusterRole you wish to bind to
+  name: {{ template "gluu.fullname" . }} # this must match the name of the Role or ClusterRole you wish to bind to
   apiGroup: rbac.authorization.k8s.io

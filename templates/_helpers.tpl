@@ -60,7 +60,7 @@ Creates a csv list of the ldap servers
 */}}
 {{- define "gluu.ldaplist" -}}
 {{- $hosts := .Values.global.ldap.extraHosts -}}
-{{- $genLdap := dict "host" (printf "%s-%s" .Release.Name .Values.global.ldap.type) "port" 1389.00 -}}
+{{- $genLdap := dict "host" (printf "%s-%s" .Release.Name .Values.global.ldap.type) "port" .Values.global.ldap.ldap.port -}}
 {{- $hosts := prepend $hosts $genLdap -}}
 {{- $local := dict "first" true -}}
 {{- range $k, $v := $hosts -}}

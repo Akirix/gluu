@@ -1,4 +1,4 @@
-apiVersion: apps/v1beta2
+apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ template "gluu.fullname" . }}
@@ -70,7 +70,7 @@ spec:
             - name: GLUU_CERT_ALT_NAME
               value: "{{ template "gluu.fullname" . }}"
             - name: GLUU_OXTRUST_CONFIG_GENERATION
-              value: {{ .Values.oxtrustConfigGen }}
+              value: {{ .Values.oxtrustConfigGen | quote }}
 {{ include "gluu.commonvars" . | indent 12 }}
           ports:
             - name: ldap

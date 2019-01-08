@@ -1,0 +1,31 @@
+dependencies:
+
+  - name: config-init
+    repository: file://charts/config-init
+    
+  - name: keyrotation
+    repository: file://charts/keyrotation
+    
+  - name: nginx
+    repository: file://charts/nginx
+    
+  - name: opendj
+    repository: file://charts/opendj
+    version: 1.0.0
+    condition: opendj.enabled
+    import-values:
+      - child: service
+        parent: global.ldap
+    
+  - name: oxauth
+    repository: file://charts/oxauth
+    version: 1.0.0
+    import-values:
+      - child: service
+        parent: global.oxauth
+      
+  - name: oxshibboleth
+    repository: file://charts/oxshibboleth
+    
+  - name: oxtrust
+    repository: file://charts/oxtrust

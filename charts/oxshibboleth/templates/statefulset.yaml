@@ -60,7 +60,7 @@ spec:
             - name: GLUU_CONFIG_ADAPTER
               value: "kubernetes"
             - name: GLUU_OXAUTH_BACKEND
-              value: {{ printf "%s-oxauth:%s" .Release.Name "8080" }}
+              value: {{ printf "%s-oxauth:%.f" .Release.Name .Values.global.oxauth.port }}
             {{- if .Values.maxRamFraction }}
             - name: GLUU_MAX_RAM_FRACTION
               value: {{ .Values.maxRamFraction }}
