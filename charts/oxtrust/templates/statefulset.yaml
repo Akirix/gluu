@@ -80,11 +80,11 @@ spec:
               mountPath: "/opt/shared-shibboleth-idp"
             - name: logs
               mountPath: /opt/gluu/jetty/identity/logs
-            - name: oxtrust-lib-ext
+            - name: lib-ext
               mountPath: /opt/gluu/jetty/identity/lib/ext
-            - name: oxtrust-custom-static
+            - name: custom-static
               mountPath: /opt/gluu/jetty/identity/custom/static
-            - name: oxtrust-custom-pages
+            - name: custom-pages
               mountPath: /opt/gluu/jetty/identity/custom/pages
           livenessProbe:
             httpGet:
