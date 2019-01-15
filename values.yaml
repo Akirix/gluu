@@ -8,6 +8,12 @@ global:
   # the name of some kind of configmap
   configMapName: gluu
   
+  # enter the host you would like to use for the ingress
+  host: kube.gluu.local
+  
+  # enter the name of the tls secret to use
+  tlsSecret: tls-certificate
+  
   consul:
     enabled: false # whether or not to have this chart create the consul server
     host: consul

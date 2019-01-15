@@ -90,12 +90,16 @@ kube_commands() {
 		'config')
 			helm install . --dry-run --debug $helm_sets -f ./env/dev-server.yaml
 			;;
+		'chart-config')
+			helm install "./charts/$2" --dry-run $helm_sets -f "./env/${2}.yaml" > "./env/manifests/${2}.yaml"
+			;;
 		'run')
 			helm install . $helm_sets -f ./env/dev-server.yaml
 			;;
 		'delete')
 			helm delete $2 --purge
 			kubectl delete pod $(kubectl get pod | grep $2 | awk '{print $1}')
+			kubectl delete pvc $(kubectl get pvc | grep $2 | awk '{print $1}')
 			;;
 		*)
 			echo "Command not found"
