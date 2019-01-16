@@ -7,5 +7,17 @@ metadata:
 {{ include "gluu.labels" . | indent 4 }}
 rules:
   - apiGroups: [""] # "" refers to the core API group
-    resources: ["services", "endpoints", "configmaps"]
-    verbs: ["get", "list", "watch", "create", "update", "patch", "delete"]
+    resources: [
+      "services", 
+      "endpoints", 
+      "configmaps"
+    ]
+    verbs: [
+      "get", 
+      "list", 
+      "watch", 
+      "create", 
+      "update", 
+      "patch", 
+      "delete"
+    ]

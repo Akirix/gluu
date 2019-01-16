@@ -6,8 +6,11 @@ dependencies:
   - name: keyrotation
     repository: file://charts/keyrotation
     
-  - name: nginx
-    repository: file://charts/nginx
+  - name: oxpassport
+    repository: file://charts/oxpassport
+    import-values:
+      - child: service
+        parent: global.oxpassport
     
   - name: opendj
     repository: file://charts/opendj
@@ -29,3 +32,6 @@ dependencies:
     
   - name: oxtrust
     repository: file://charts/oxtrust
+    import-values:
+      - child: service
+        parent: global.oxtrust

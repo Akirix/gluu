@@ -1,0 +1,81 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: {{ template "gluu.fullname" . }}
+  namespace: {{ .Values.global.namespace }}
+  labels:
+{{ include "gluu.labels" . | indent 4 }}
+spec:
+  replicas: {{ .Values.replicas }}
+  selector:
+    matchLabels:
+{{ include "gluu.labels" . | indent 6 }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 1
+    type: RollingUpdate
+  template:
+    metadata:
+      creationTimestamp: null
+      {{- if .Values.podAnnotations }}
+      annotations:
+{{ toYaml .Values.podAnnotations | indent 8 }}
+      {{- end }}
+      labels:
+{{ include "gluu.labels" . | indent 8 }}
+        {{- if .Values.podLabels }}
+{{ toYaml .Values.podLabels | indent 8 }}
+        {{- end }}
+    spec:
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+        {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+        {{- end}}
+      {{- end}}
+      {{- if .Values.nodeSelector }}
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+      {{- end }}
+      {{- if .Values.tolerations }}
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
+      {{- end }}
+      {{- if .Values.schedulerName }}
+      schedulerName: "{{ .Values.schedulerName }}"
+      {{- end }}
+      {{- if .Values.affinity }}
+      affinity: 
+{{ toYaml .Values.affinity | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ template "gluu.fullname" . }}
+          image: "{{ template "gluu.image" . }}"
+          imagePullPolicy: {{ default "Always" .Values.image.pullPolicy | quote }}
+          {{- if .Values.resources }}
+          resources:
+{{ toYaml .Values.resources | indent 10 }}
+          {{- end }}
+          ports:
+            - name: oxpassport
+              protocol: TCP
+              containerPort: 8090
+          env:
+            - name: GLUU_OXAUTH_BACKEND
+              value: {{ (printf "%s-oxauth:%.f" .Release.Name .Values.global.oxauth.port) | quote }}
+            - name: GLUU_OXTRUST_BACKEND
+              value: {{ (printf "%s-oxtrust:%.f" .Release.Name .Values.global.oxtrust.port) | quote }}
+{{ include "gluu.commonvars" . | indent 12 }}
+          livenessProbe:
+            httpGet:
+              path: /passport
+              port: 8090
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /passport
+              port: 8090
+            initialDelaySeconds: 25
+            periodSeconds: 25

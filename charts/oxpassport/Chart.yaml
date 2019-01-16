@@ -1,0 +1,16 @@
+apiVersion: v1
+description: SSO for the soul
+name: oxpassport
+version: 1.0.0
+appVersion: 3.1.4_01
+home: https://www.gluu.org/
+icon: https://pbs.twimg.com/profile_images/1384270148/icosahedron_400x400.jpg
+sources:
+- https://repo.akxdev.com/services/gluu
+keywords:
+- gluu
+- sso
+- ldap
+maintainers:
+- name: kelly
+  email: kelly@akirix.com
